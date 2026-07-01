@@ -1,0 +1,253 @@
+<template>
+    <!-- Page header — flat bar like Engagement Insights -->
+    <div class="page-header">
+        <h1 class="page-title">Segment Overlap</h1>
+    </div>
+
+    <div class="page-body">
+
+        <!-- Loading spinner -->
+        <template lwc:if={isLoadingSegments}>
+            <div class="slds-align_absolute-center slds-p-around_large">
+                <lightning-spinner
+                    alternative-text="Loading segments…"
+                    size="medium">
+                </lightning-spinner>
+                <p class="slds-m-top_small slds-text-color_weak">
+                    Loading segments from Data Cloud…
+                </p>
+            </div>
+        </template>
+
+        <!-- Segment load error -->
+        <template lwc:if={segmentLoadError}>
+            <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_medium" role="alert">
+                <lightning-icon icon-name="utility:error" size="x-small"
+                               alternative-text="Error" class="slds-m-right_x-small">
+                </lightning-icon>
+                <h2>{segmentLoadError}</h2>
+            </div>
+        </template>
+
+        <!-- Main content panel -->
+        <template lwc:if={segmentsLoaded}>
+            <div class="content-panel">
+                <h2 class="section-title">Compare Segments</h2>
+                <p class="section-subtitle">Select segments to analyze membership overlap.</p>
+
+                <!-- Segment dropdowns in a filter row -->
+                <div class="filter-row">
+                    <template for:each={segmentSlots} for:item="slot">
+                        <div key={slot.key} class="filter-item">
+                            <lightning-combobox
+                                name={slot.name}
+                                label={slot.label}
+                                placeholder="Select a segment…"
+                                options={segmentOptions}
+                                value={slot.value}
+                                onchange={handleSegmentChange}
+                                data-index={slot.index}
+                                disabled={isCalculating}>
+                            </lightning-combobox>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Action row -->
+                <div class="action-row">
+                    <lightning-button
+                        label="Calculate Overlap"
+                        variant="brand"
+                        onclick={handleCalculate}
+                        disabled={isCalculateDisabled}>
+                    </lightning-button>
+                    <template lwc:if={canAddSegment}>
+                        <lightning-button
+                            label="Add Segment"
+                            variant="neutral"
+                            icon-name="utility:add"
+                            onclick={handleAddSegment}>
+                        </lightning-button>
+                    </template>
+                    <template lwc:if={canRemoveSegment}>
+                        <lightning-button
+                            label="Remove Segment"
+                            variant="neutral"
+                            icon-name="utility:dash"
+                            onclick={handleRemoveSegment}>
+                        </lightning-button>
+                    </template>
+                </div>
+
+                <!-- Duplicate warning -->
+                <template lwc:if={hasDuplicateSegments}>
+                    <p class="slds-text-color_error slds-text-body_small slds-m-top_small">
+                        Each segment must be unique. Please select different segments.
+                    </p>
+                </template>
+            </div>
+
+            <!-- Calculating spinner -->
+            <template lwc:if={isCalculating}>
+                <div class="slds-m-top_medium slds-align_absolute-center">
+                    <lightning-spinner
+                        alternative-text="Calculating…"
+                        size="small">
+                    </lightning-spinner>
+                    <p class="slds-m-left_small slds-text-color_weak">
+                        Querying Data Cloud…
+                    </p>
+                </div>
+            </template>
+
+            <!-- Calculation error -->
+            <template lwc:if={calcError}>
+                <div class="slds-notify slds-notify_alert slds-alert_error slds-m-top_medium" role="alert">
+                    <lightning-icon icon-name="utility:error" size="x-small"
+                                   alternative-text="Error" class="slds-m-right_x-small">
+                    </lightning-icon>
+                    <h2>{calcError}</h2>
+                </div>
+            </template>
+
+            <!-- Results -->
+            <template lwc:if={hasResults}>
+                <div class="results-panel">
+                    <h2 class="section-title">Overlap Results</h2>
+                    <p class="section-subtitle">Membership counts and intersections across selected segments.</p>
+
+                    <!-- Stat cards — Channel Activity style -->
+                    <div class="stat-row">
+                        <template for:each={segmentStats} for:item="stat">
+                            <div key={stat.key} class="stat-card">
+                                <p class="stat-label">{stat.label}</p>
+                                <p class="stat-value">{stat.formattedCount}</p>
+                                <p class="stat-sub">members</p>
+                            </div>
+                        </template>
+                        <div class="stat-card">
+                            <p class="stat-label">All Overlap</p>
+                            <p class="stat-value">{formattedAllOverlap}</p>
+                            <p class="stat-sub">in all segments</p>
+                        </div>
+                    </div>
+
+                    <!-- Pairwise overlap table -->
+                    <template lwc:if={showPairwiseTable}>
+                        <h3 class="table-heading">Pairwise Overlaps</h3>
+                        <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-no-row-hover">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col"><div class="slds-truncate">Segments</div></th>
+                                    <th scope="col"><div class="slds-truncate">Overlap</div></th>
+                                    <th scope="col"><div class="slds-truncate">% of Smaller</div></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={pairwiseRows} for:item="row">
+                                    <tr key={row.key}>
+                                        <td><div class="slds-truncate">{row.label}</div></td>
+                                        <td><div class="slds-truncate">{row.formattedOverlap}</div></td>
+                                        <td><div class="slds-truncate">{row.pct}</div></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+
+                    <!-- Venn diagram -->
+                    <div class="venn-panel slds-m-top_medium">
+                        <c-venn-diagram-svg
+                            segments-json={segmentsJsonForVenn}>
+                        </c-venn-diagram-svg>
+                    </div>
+
+                    <!-- Create Segment from Overlap -->
+                    <template lwc:if={canCreateSegment}>
+                        <div class="create-segment-row">
+                            <lightning-button
+                                label="Create Segment from Overlap"
+                                variant="brand"
+                                icon-name="utility:new"
+                                onclick={handleOpenCreateModal}
+                                disabled={isCreatingSegment}>
+                            </lightning-button>
+                            <span class="create-segment-hint">
+                                Create a new Data Cloud segment containing the {formattedAllOverlap} overlapping members.
+                            </span>
+                        </div>
+                    </template>
+
+                    <!-- Segment creation success -->
+                    <template lwc:if={createSuccess}>
+                        <div class="slds-notify slds-notify_alert slds-alert_success slds-m-top_medium success-banner" role="alert">
+                            <lightning-icon icon-name="utility:success" size="x-small"
+                                           variant="inverse" alternative-text="Success"
+                                           class="slds-m-right_x-small">
+                            </lightning-icon>
+                            <h2>Segment "<strong>{createSuccess}</strong>" created successfully. It will appear in Data Cloud once processing completes.</h2>
+                        </div>
+                    </template>
+
+                    <!-- Segment creation error -->
+                    <template lwc:if={createError}>
+                        <div class="slds-notify slds-notify_alert slds-alert_error slds-m-top_medium" role="alert">
+                            <lightning-icon icon-name="utility:error" size="x-small"
+                                           alternative-text="Error" class="slds-m-right_x-small">
+                            </lightning-icon>
+                            <h2>{createError}</h2>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+        </template>
+
+    </div>
+
+    <!-- Create Segment Modal -->
+    <template lwc:if={showCreateModal}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                            title="Close" onclick={handleCloseCreateModal}>
+                        <lightning-icon icon-name="utility:close" size="small"
+                                       alternative-text="Close">
+                        </lightning-icon>
+                    </button>
+                    <h2 class="slds-modal__title slds-hyphenate">Create Segment from Overlap</h2>
+                </div>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <p class="slds-m-bottom_medium slds-text-color_weak">
+                        This will create a new Data Cloud segment containing the
+                        <strong>{formattedAllOverlap}</strong> members that overlap
+                        across all {selectedSegmentCount} selected segments.
+                    </p>
+                    <lightning-input
+                        label="Segment Name"
+                        placeholder="e.g., High-Value Cross-Channel Audience"
+                        value={newSegmentName}
+                        onchange={handleSegmentNameChange}
+                        required>
+                    </lightning-input>
+                </div>
+                <div class="slds-modal__footer">
+                    <lightning-button
+                        label="Cancel"
+                        variant="neutral"
+                        onclick={handleCloseCreateModal}>
+                    </lightning-button>
+                    <lightning-button
+                        label={createButtonLabel}
+                        variant="brand"
+                        onclick={handleCreateSegment}
+                        disabled={isCreateDisabled}
+                        class="slds-m-left_x-small">
+                    </lightning-button>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

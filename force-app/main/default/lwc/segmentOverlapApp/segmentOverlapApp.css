@@ -1,0 +1,174 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   Segment Overlap — Salesforce CRM Analytics / Engagement Insights style
+   Matching Channel Activity metric cards: left-aligned, light-weight numbers
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:host {
+    display: block;
+    background: #F3F3F3;
+}
+
+/* ── Page header ───────────────────────────────────────────────────────── */
+.page-header {
+    background: #FFFFFF;
+    border-bottom: 1px solid #E5E5E5;
+    padding: 1.25rem 1.5rem 1rem;
+}
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: #080707;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+/* ── Page body ─────────────────────────────────────────────────────────── */
+.page-body {
+    padding: 1rem 1.5rem 1.5rem;
+}
+
+/* ── Content panel (white card) ─────────────────────────────────────────── */
+.content-panel {
+    background: #FFFFFF;
+    border: 1px solid #DDDBDA;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+}
+
+/* ── Section heading ───────────────────────────────────────────────────── */
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #080707;
+    margin: 0 0 0.125rem;
+}
+
+.section-subtitle {
+    font-size: 0.8125rem;
+    color: #706E6B;
+    margin: 0 0 1rem;
+    font-weight: 400;
+}
+
+/* ── Filter row ────────────────────────────────────────────────────────── */
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #E5E5E5;
+    margin-bottom: 1rem;
+}
+
+.filter-item {
+    flex: 1 1 200px;
+    min-width: 180px;
+}
+
+/* ── Action row ────────────────────────────────────────────────────────── */
+.action-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem 0 0;
+}
+
+/* ── Results panel ─────────────────────────────────────────────────────── */
+.results-panel {
+    background: #FFFFFF;
+    border: 1px solid #DDDBDA;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1rem;
+}
+
+/* ── Stat cards — Channel Activity style ───────────────────────────────── */
+.stat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.stat-card {
+    flex: 1 1 0;
+    min-width: 140px;
+    background: #FFFFFF;
+    border: 1px solid #DDDBDA;
+    border-radius: 8px;
+    padding: 1.25rem 1.25rem 1rem;
+    text-align: left;
+}
+
+.stat-label {
+    font-size: 0.8125rem;
+    color: #3E3E3C;
+    margin: 0 0 0.5rem;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 300;
+    color: #080707;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.stat-sub {
+    font-size: 0.75rem;
+    color: #706E6B;
+    margin: 0.375rem 0 0;
+    font-weight: 400;
+}
+
+/* ── Pairwise table ────────────────────────────────────────────────────── */
+.table-heading {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #080707;
+    margin: 0 0 0.5rem;
+}
+
+/* ── Venn container ────────────────────────────────────────────────────── */
+.venn-panel {
+    background: #FFFFFF;
+    border: 1px solid #DDDBDA;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+/* ── Create segment row ───────────────────────────────────────────────── */
+.create-segment-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #E5E5E5;
+}
+
+.create-segment-hint {
+    font-size: 0.8125rem;
+    color: #706E6B;
+    font-weight: 400;
+}
+
+/* ── Success banner ───────────────────────────────────────────────────── */
+.success-banner {
+    background-color: #04844B;
+    color: #FFFFFF;
+}
+
+/* ── Error banner ──────────────────────────────────────────────────────── */
+.slds-notify_alert {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+}
