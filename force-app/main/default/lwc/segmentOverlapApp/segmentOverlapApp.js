@@ -194,6 +194,15 @@ export default class SegmentOverlapApp extends LightningElement {
         })));
     }
 
+    get overlapJsonForVenn() {
+        if (!this.result) return '{}';
+        return JSON.stringify({
+            pairwise: this.result.pairwise || {},
+            allOverlap: this.result.allOverlap || 0,
+            counts: this.result.counts || []
+        });
+    }
+
     // ─── Create segment from overlap ────────────────────────────────────────────
 
     get canCreateSegment() {
