@@ -415,13 +415,13 @@ export default class VennDiagramSvg extends LightningElement {
             }));
     }
 
-    get circleLabels() {
+    get legendItems() {
         const co = this._circleObjects;
         return co.map((c, i) => ({
-            key:   `lbl-${i}`,
-            x:     c.x,
-            y:     c.y + c.r + 22,
-            label: this._truncate(c.name, 22)
+            key:            `legend-${i}`,
+            name:           c.name || `Segment ${i + 1}`,
+            formattedCount: this._fmtFull(c.count),
+            dotStyle:       `background-color: ${c.strokeColor}`
         }));
     }
 
@@ -469,6 +469,10 @@ export default class VennDiagramSvg extends LightningElement {
         if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
         if (num >= 1_000)     return (num / 1_000).toFixed(1) + 'K';
         return String(num);
+    }
+
+    _fmtFull(n) {
+        return (Number(n) || 0).toLocaleString();
     }
 
     _truncate(s, max = 22) {
