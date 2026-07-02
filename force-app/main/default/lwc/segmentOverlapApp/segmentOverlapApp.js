@@ -206,7 +206,7 @@ export default class SegmentOverlapApp extends LightningElement {
     // ─── Create segment from overlap ────────────────────────────────────────────
 
     get canCreateSegment() {
-        return this.result && this.result.allOverlap > 0;
+        return this.result !== null;
     }
 
     get selectedSegmentCount() {
@@ -270,10 +270,12 @@ export default class SegmentOverlapApp extends LightningElement {
     }
 
     handleOpenCreateModal() {
-        this.isZoneCreate    = false;
-        this.zoneIncludeIds  = [];
+        // Union of all segments — include all, exclude none
+        const allNames = this.selectedIds.map(id => this._segmentMap[id]?.name ?? 'Unknown');
+        this.isZoneCreate    = true;
+        this.zoneIncludeIds  = [...this.selectedIds];
         this.zoneExcludeIds  = [];
-        this.zoneDescription = '';
+        this.zoneDescription = 'Members in ' + allNames.join(' OR ') + ' (union of all selected segments)';
         this.showCreateModal = true;
         this.newSegmentName  = '';
         this.createError     = '';

@@ -414,31 +414,48 @@ public with sharing class DataCloudService {
             exc15.add(sfId.length() > 15 ? sfId.substring(0, 15) : sfId);
         }
 
-        // Build SQL: members in ALL included segments, NOT in ANY excluded segment
+        // Build SQL based on zone type
         String tbl = latestTable;
+        String zoneSql;
 
-        // Base query — first included segment
-        String zoneSql =
-            'SELECT DISTINCT ' + tbl + '.Id__c, ' + tbl + '.KQ_Id__c' +
-            ' FROM ' + tbl +
-            ' WHERE ' + tbl + '.Segment_Id__c = \'' +
-            String.escapeSingleQuotes(inc15[0]) + '\'' +
-            ' AND ' + tbl + '.Id__c IS NOT NULL';
-
-        // Add WHERE IN for additional included segments
-        for (Integer i = 1; i < inc15.size(); i++) {
-            zoneSql += ' AND ' + tbl + '.Id__c IN (' +
-                'SELECT ' + tbl + '.Id__c FROM ' + tbl +
+        if (exc15.isEmpty() && inc15.size() > 1) {
+            // UNION: members in ANY of the included segments (no excludes)
+            // Use IN (...) with all segment IDs
+            String idList = '';
+            for (Integer i = 0; i < inc15.size(); i++) {
+                if (i > 0) idList += ', ';
+                idList += '\'' + String.escapeSingleQuotes(inc15[i]) + '\'';
+            }
+            zoneSql =
+                'SELECT DISTINCT ' + tbl + '.Id__c, ' + tbl + '.KQ_Id__c' +
+                ' FROM ' + tbl +
+                ' WHERE ' + tbl + '.Segment_Id__c IN (' + idList + ')' +
+                ' AND ' + tbl + '.Id__c IS NOT NULL';
+        } else {
+            // INTERSECTION with optional exclusions:
+            // members in ALL included segments, NOT in ANY excluded segment
+            zoneSql =
+                'SELECT DISTINCT ' + tbl + '.Id__c, ' + tbl + '.KQ_Id__c' +
+                ' FROM ' + tbl +
                 ' WHERE ' + tbl + '.Segment_Id__c = \'' +
-                String.escapeSingleQuotes(inc15[i]) + '\')';
-        }
+                String.escapeSingleQuotes(inc15[0]) + '\'' +
+                ' AND ' + tbl + '.Id__c IS NOT NULL';
 
-        // Add WHERE NOT IN for each excluded segment
-        for (Integer i = 0; i < exc15.size(); i++) {
-            zoneSql += ' AND ' + tbl + '.Id__c NOT IN (' +
-                'SELECT ' + tbl + '.Id__c FROM ' + tbl +
-                ' WHERE ' + tbl + '.Segment_Id__c = \'' +
-                String.escapeSingleQuotes(exc15[i]) + '\')';
+            // Add WHERE IN for additional included segments
+            for (Integer i = 1; i < inc15.size(); i++) {
+                zoneSql += ' AND ' + tbl + '.Id__c IN (' +
+                    'SELECT ' + tbl + '.Id__c FROM ' + tbl +
+                    ' WHERE ' + tbl + '.Segment_Id__c = \'' +
+                    String.escapeSingleQuotes(inc15[i]) + '\')';
+            }
+
+            // Add WHERE NOT IN for each excluded segment
+            for (Integer i = 0; i < exc15.size(); i++) {
+                zoneSql += ' AND ' + tbl + '.Id__c NOT IN (' +
+                    'SELECT ' + tbl + '.Id__c FROM ' + tbl +
+                    ' WHERE ' + tbl + '.Segment_Id__c = \'' +
+                    String.escapeSingleQuotes(exc15[i]) + '\')';
+            }
         }
 
         // Create the DBT segment via ConnectApi
